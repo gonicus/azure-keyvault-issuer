@@ -7,4 +7,22 @@ layout:
 - go.kubebuilder.io/v4
 projectName: azure-keyvault-issuer
 repo: github.com/joshmue/azure-keyvault-issuer
+resources:
+- api:
+    crdVersion: v1
+    namespaced: true
+  controller: true
+  domain: gonicus.de
+  group: azure-keyvault-issuer
+  kind: Issuer
+  path: github.com/joshmue/azure-keyvault-issuer/api/v1alpha1
+  version: v1alpha1
+- api:
+    crdVersion: v1
+  controller: true
+  domain: gonicus.de
+  group: azure-keyvault-issuer
+  kind: ClusterIssuer
+  path: github.com/joshmue/azure-keyvault-issuer/api/v1alpha1
+  version: v1alpha1
 version: "3"

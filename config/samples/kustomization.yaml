@@ -1,0 +1,5 @@
+## Append samples of your project ##
+resources:
+- azure-keyvault-issuer_v1alpha1_issuer.yaml
+- azure-keyvault-issuer_v1alpha1_clusterissuer.yaml
+#+kubebuilder:scaffold:manifestskustomizesamples
