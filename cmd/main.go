@@ -31,6 +31,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
+	cmapi "github.com/cert-manager/cert-manager/pkg/apis/certmanager/v1"
 	azurekeyvaultissuerv1alpha1 "github.com/joshmue/azure-keyvault-issuer/api/v1alpha1"
 	"github.com/joshmue/azure-keyvault-issuer/internal/controller"
 	//+kubebuilder:scaffold:imports
@@ -42,6 +43,7 @@ var (
 )
 
 func init() {
+	utilruntime.Must(cmapi.AddToScheme(scheme))
 	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
 
 	utilruntime.Must(azurekeyvaultissuerv1alpha1.AddToScheme(scheme))
