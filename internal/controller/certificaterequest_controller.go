@@ -53,8 +53,8 @@ type CertificateRequestReconciler struct {
 	SignerBuilder signer.SignerBuilder
 }
 
-//+kubebuilder:rbac:groups=azure-keyvault-issuer.gonicus.de,resources=issuers,verbs=get;list;watch
-//+kubebuilder:rbac:groups=azure-keyvault-issuer.gonicus.de,resources=issuers/status,verbs=get;update;patch
+//+kubebuilder:rbac:groups=cert-manager.io,resources=certificaterequests,verbs=get;list;watch
+//+kubebuilder:rbac:groups=cert-manager.io,resources=certificaterequests/status,verbs=get;update;patch
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.
