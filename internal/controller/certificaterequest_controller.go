@@ -198,12 +198,12 @@ func (r *CertificateRequestReconciler) Reconcile(ctx context.Context, req ctrl.R
 		return ctrl.Result{}, errIssuerRef
 	}
 
-	signer, err := r.SignerBuilder(issuerSpec)
+	signer, err := r.SignerBuilder(ctx, issuerSpec)
 	if err != nil {
 		return ctrl.Result{}, fmt.Errorf("%w: %v", errSignerBuilder, err)
 	}
 
-	signed, err := signer.Sign(certificateRequest.Spec.Request)
+	signed, err := signer.SignCSR(ctx, certificateRequest.Spec.Request)
 	if err != nil {
 		return ctrl.Result{}, fmt.Errorf("%w: %v", errSignerSign, err)
 	}

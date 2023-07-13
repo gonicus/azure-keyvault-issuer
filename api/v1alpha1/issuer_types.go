@@ -22,9 +22,14 @@ import (
 
 // IssuerSpec defines the desired state of Issuer
 type IssuerSpec struct {
+	// KeyVaultBaseURL is the https URL to the Key Vault
 	KeyVaultBaseURL string `json:"keyVaultBaseURL"`
-	KeyName         string `json:"keyName"`
-	KeyVersion      string `json:"keyVersion"`
+	// KeyName is the "name" of the "Key" resource
+	KeyName string `json:"keyName"`
+	// KeyVersion is the "version" of the "Key" resource
+	KeyVersion string `json:"keyVersion"`
+	// ParentCert is usually the CA certificate
+	ParentCert []byte `json:"parentCert"`
 }
 
 // IssuerStatus defines the observed state of Issuer
