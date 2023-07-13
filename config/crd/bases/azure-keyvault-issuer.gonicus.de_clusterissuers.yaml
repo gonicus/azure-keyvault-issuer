@@ -35,15 +35,23 @@ spec:
             description: IssuerSpec defines the desired state of Issuer
             properties:
               keyName:
+                description: KeyName is the "name" of the "Key" resource
                 type: string
               keyVaultBaseURL:
+                description: KeyVaultBaseURL is the https URL to the Key Vault
                 type: string
               keyVersion:
+                description: KeyVersion is the "version" of the "Key" resource
+                type: string
+              parentCert:
+                description: ParentCert is usually the CA certificate
+                format: byte
                 type: string
             required:
             - keyName
             - keyVaultBaseURL
             - keyVersion
+            - parentCert
             type: object
           status:
             description: IssuerStatus defines the observed state of Issuer
