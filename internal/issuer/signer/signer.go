@@ -8,6 +8,7 @@ import (
 	"crypto/x509"
 	"encoding/pem"
 	"errors"
+	"fmt"
 	"io"
 	"math/big"
 
@@ -99,9 +100,12 @@ func (o *azureKeyvaultSigner) SignCSR(ctx context.Context, csrBytes []byte) ([]b
 		return nil, err
 	}
 
+	if csr.PublicKeyAlgorithm != x509.RSA {
+		return nil, fmt.Errorf("unsupported public key algorithm %v", csr.PublicKeyAlgorithm)
+	}
+
 	templateCertificate := x509.Certificate{
-		Signature:          csr.Signature,
-		SignatureAlgorithm: csr.SignatureAlgorithm,
+		SignatureAlgorithm: x509.SHA512WithRSA,
 		PublicKeyAlgorithm: csr.PublicKeyAlgorithm,
 		PublicKey:          csr.PublicKey,
 		Version:            csr.Version,
