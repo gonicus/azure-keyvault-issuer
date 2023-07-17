@@ -97,7 +97,7 @@ func main() {
 		log.Fatal(err)
 	}
 	err = pem.Encode(os.Stdout, &pem.Block{
-		Type: "CERTIFICATE",
+		Type:  "CERTIFICATE",
 		Bytes: result,
 	})
 	if err != nil {

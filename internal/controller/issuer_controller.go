@@ -30,7 +30,7 @@ import (
 // IssuerReconciler reconciles a Issuer object
 type IssuerReconciler struct {
 	client.Client
-	Scheme *runtime.Scheme
+	Scheme           *runtime.Scheme
 	CAHandlerBuilder cahandler.CAHandlerBuilder
 }
 
