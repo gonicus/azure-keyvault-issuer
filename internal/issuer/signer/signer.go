@@ -21,19 +21,19 @@ type HealthChecker interface {
 	Check() error
 }
 
-type HealthCheckerBuilder func(*azurekeyvaultissuerv1alpha1.IssuerSpec) (HealthChecker, error)
+type HealthCheckerBuilder func(*azurekeyvaultissuerv1alpha1.IssuerSpec, *azurekeyvaultissuerv1alpha1.IssuerStatus) (HealthChecker, error)
 
 type Signer interface {
 	SignCSR(context.Context, []byte) ([]byte, error)
 }
 
-type SignerBuilder func(context.Context, *azurekeyvaultissuerv1alpha1.IssuerSpec) (Signer, error)
+type SignerBuilder func(context.Context, *azurekeyvaultissuerv1alpha1.IssuerSpec, *azurekeyvaultissuerv1alpha1.IssuerStatus) (Signer, error)
 
-func AzureKeyvaultHealthCheckerFromIssuerAndSecretData(context.Context, *azurekeyvaultissuerv1alpha1.IssuerSpec) (HealthChecker, error) {
+func AzureKeyvaultHealthCheckerFromIssuerAndSecretData(context.Context, *azurekeyvaultissuerv1alpha1.IssuerSpec, *azurekeyvaultissuerv1alpha1.IssuerStatus) (HealthChecker, error) {
 	return &azureKeyvaultSigner{}, nil
 }
 
-func AzureKeyvaultSignerFromIssuerAndSecretData(ctx context.Context, issuerSpec *azurekeyvaultissuerv1alpha1.IssuerSpec) (Signer, error) {
+func AzureKeyvaultSignerFromIssuerAndSecretData(ctx context.Context, issuerSpec *azurekeyvaultissuerv1alpha1.IssuerSpec, issuerStatus *azurekeyvaultissuerv1alpha1.IssuerStatus) (Signer, error) {
 	creds, err := azidentity.NewDefaultAzureCredential(nil)
 	if err != nil {
 		return nil, err
@@ -58,7 +58,7 @@ func AzureKeyvaultSignerFromIssuerAndSecretData(ctx context.Context, issuerSpec 
 		},
 		keyName:    issuerSpec.KeyName,
 		keyVersion: issuerSpec.KeyVersion,
-		parentCert: issuerSpec.ParentCert,
+		parentCert: issuerStatus.CACertificate,
 	}, nil
 }
 

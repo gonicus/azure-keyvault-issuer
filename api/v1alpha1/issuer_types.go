@@ -17,6 +17,7 @@ limitations under the License.
 package v1alpha1
 
 import (
+	cmapi "github.com/cert-manager/cert-manager/pkg/apis/certmanager/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -28,12 +29,13 @@ type IssuerSpec struct {
 	KeyName string `json:"keyName"`
 	// KeyVersion is the "version" of the "Key" resource
 	KeyVersion string `json:"keyVersion"`
-	// ParentCert is usually the CA certificate
-	ParentCert []byte `json:"parentCert"`
 }
 
 // IssuerStatus defines the observed state of Issuer
-type IssuerStatus struct{}
+type IssuerStatus struct {
+	Conditions    []cmapi.IssuerCondition `json:"conditions,omitempty"`
+	CACertificate []byte                  `json:"caCertificate,omitempty"`
+}
 
 //+kubebuilder:object:root=true
 //+kubebuilder:subresource:status

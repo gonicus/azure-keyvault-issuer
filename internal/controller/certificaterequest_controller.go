@@ -198,7 +198,22 @@ func (r *CertificateRequestReconciler) Reconcile(ctx context.Context, req ctrl.R
 		return ctrl.Result{}, errIssuerRef
 	}
 
-	signer, err := r.SignerBuilder(ctx, issuerSpec)
+	var issuerStatus *azurekeyvaultissuerv1alpha1.IssuerStatus
+	switch issuerImp := issuer.(type) {
+	case *azurekeyvaultissuerv1alpha1.ClusterIssuer:
+		issuerStatus = &issuerImp.Status
+	case *azurekeyvaultissuerv1alpha1.Issuer:
+		issuerStatus = &issuerImp.Status
+	default:
+		return ctrl.Result{}, errIssuerRef
+	}
+
+	issuerConditionStatus := GetReadyCondition(issuerStatus).Status
+	if issuerConditionStatus != cmmeta.ConditionTrue {
+		return ctrl.Result{}, fmt.Errorf("%w: status is %v", errIssuerNotReady, issuerConditionStatus)
+	}
+
+	signer, err := r.SignerBuilder(ctx, issuerSpec, issuerStatus)
 	if err != nil {
 		return ctrl.Result{}, fmt.Errorf("%w: %v", errSignerBuilder, err)
 	}

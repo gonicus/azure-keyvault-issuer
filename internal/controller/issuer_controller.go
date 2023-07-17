@@ -22,15 +22,16 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/controller-runtime/pkg/log"
 
 	azurekeyvaultissuerv1alpha1 "github.com/joshmue/azure-keyvault-issuer/api/v1alpha1"
+	cahandler "github.com/joshmue/azure-keyvault-issuer/internal/issuer/ca_handler"
 )
 
 // IssuerReconciler reconciles a Issuer object
 type IssuerReconciler struct {
 	client.Client
 	Scheme *runtime.Scheme
+	CAHandlerBuilder cahandler.CAHandlerBuilder
 }
 
 //+kubebuilder:rbac:groups=azure-keyvault-issuer.gonicus.de,resources=issuers,verbs=get;list;watch
@@ -46,11 +47,7 @@ type IssuerReconciler struct {
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.15.0/pkg/reconcile
 func (r *IssuerReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	_ = log.FromContext(ctx)
-
-	// TODO(user): your logic here
-
-	return ctrl.Result{}, nil
+	return ReconcileIssuerOrClusterIssuer(ctx, req, r.Client, r.Scheme, r.CAHandlerBuilder)
 }
 
 // SetupWithManager sets up the controller with the Manager.

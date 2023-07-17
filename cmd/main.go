@@ -35,6 +35,7 @@ import (
 	cmapi "github.com/cert-manager/cert-manager/pkg/apis/certmanager/v1"
 	azurekeyvaultissuerv1alpha1 "github.com/joshmue/azure-keyvault-issuer/api/v1alpha1"
 	"github.com/joshmue/azure-keyvault-issuer/internal/controller"
+	cahandler "github.com/joshmue/azure-keyvault-issuer/internal/issuer/ca_handler"
 	"github.com/joshmue/azure-keyvault-issuer/internal/issuer/signer"
 	//+kubebuilder:scaffold:imports
 )
@@ -94,15 +95,17 @@ func main() {
 	}
 
 	if err = (&controller.IssuerReconciler{
-		Client: mgr.GetClient(),
-		Scheme: mgr.GetScheme(),
+		Client:           mgr.GetClient(),
+		Scheme:           mgr.GetScheme(),
+		CAHandlerBuilder: cahandler.AzureKeyvaultCAHandlerFromIssuerAndSecretData,
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "Issuer")
 		os.Exit(1)
 	}
 	if err = (&controller.ClusterIssuerReconciler{
-		Client: mgr.GetClient(),
-		Scheme: mgr.GetScheme(),
+		Client:           mgr.GetClient(),
+		Scheme:           mgr.GetScheme(),
+		CAHandlerBuilder: cahandler.AzureKeyvaultCAHandlerFromIssuerAndSecretData,
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "ClusterIssuer")
 		os.Exit(1)
