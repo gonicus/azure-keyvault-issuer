@@ -75,7 +75,7 @@ func (o *azureKeyvaultSigner) Check() error {
 }
 
 func (o *azureKeyvaultSigner) Public() crypto.PublicKey {
-	return o.publicKey
+	return &o.publicKey
 }
 
 func (o *azureKeyvaultSigner) Sign(rand io.Reader, digest []byte, opts crypto.SignerOpts) ([]byte, error) {
