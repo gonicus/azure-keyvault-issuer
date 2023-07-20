@@ -52,7 +52,7 @@ func AzureKeyvaultSignerFromIssuerAndSecretData(ctx context.Context, issuerSpec 
 
 	return &azureKeyvaultSigner{
 		client: client,
-		publicKey: rsa.PublicKey{
+		publicKey: &rsa.PublicKey{
 			N: big.NewInt(0).SetBytes(resp.Key.N),
 			E: int(big.NewInt(0).SetBytes(resp.Key.E).Int64()),
 		},
@@ -64,7 +64,7 @@ func AzureKeyvaultSignerFromIssuerAndSecretData(ctx context.Context, issuerSpec 
 
 type azureKeyvaultSigner struct {
 	client     *azkeys.Client
-	publicKey  crypto.PublicKey
+	publicKey  *rsa.PublicKey
 	keyName    string
 	keyVersion string
 	parentCert []byte
@@ -75,7 +75,7 @@ func (o *azureKeyvaultSigner) Check() error {
 }
 
 func (o *azureKeyvaultSigner) Public() crypto.PublicKey {
-	return &o.publicKey
+	return o.publicKey
 }
 
 func (o *azureKeyvaultSigner) Sign(rand io.Reader, digest []byte, opts crypto.SignerOpts) ([]byte, error) {
