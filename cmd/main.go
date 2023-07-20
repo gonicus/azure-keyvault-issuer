@@ -95,6 +95,7 @@ func main() {
 	}
 
 	if err = (&controller.IssuerReconciler{
+		Kind:             "Issuer",
 		Client:           mgr.GetClient(),
 		Scheme:           mgr.GetScheme(),
 		CAHandlerBuilder: cahandler.AzureKeyvaultCAHandlerFromIssuerAndSecretData,
@@ -102,7 +103,8 @@ func main() {
 		setupLog.Error(err, "unable to create controller", "controller", "Issuer")
 		os.Exit(1)
 	}
-	if err = (&controller.ClusterIssuerReconciler{
+	if err = (&controller.IssuerReconciler{
+		Kind:             "ClusterIssuer",
 		Client:           mgr.GetClient(),
 		Scheme:           mgr.GetScheme(),
 		CAHandlerBuilder: cahandler.AzureKeyvaultCAHandlerFromIssuerAndSecretData,

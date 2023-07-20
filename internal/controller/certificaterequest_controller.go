@@ -35,6 +35,7 @@ import (
 	cmapi "github.com/cert-manager/cert-manager/pkg/apis/certmanager/v1"
 	azurekeyvaultissuerv1alpha1 "github.com/joshmue/azure-keyvault-issuer/api/v1alpha1"
 	"github.com/joshmue/azure-keyvault-issuer/internal/issuer/signer"
+	issuerutil "github.com/joshmue/azure-keyvault-issuer/internal/issuer/util"
 )
 
 var (
@@ -211,7 +212,7 @@ func (r *CertificateRequestReconciler) Reconcile(ctx context.Context, req ctrl.R
 		return ctrl.Result{}, errIssuerRef
 	}
 
-	issuerCondition := GetReadyCondition(issuerStatus)
+	issuerCondition := issuerutil.GetReadyCondition(issuerStatus)
 	if issuerCondition == nil || issuerCondition.Status != cmmeta.ConditionTrue {
 		return ctrl.Result{}, fmt.Errorf("%w: status is %v", errIssuerNotReady, issuerCondition)
 	}
