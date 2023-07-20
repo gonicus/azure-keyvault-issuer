@@ -182,6 +182,9 @@ func (r *CertificateRequestReconciler) Reconcile(ctx context.Context, req ctrl.R
 	issuerName := types.NamespacedName{
 		Name: certificateRequest.Spec.IssuerRef.Name,
 	}
+	if _, isNamespaced := issuer.(*azurekeyvaultissuerv1alpha1.Issuer); isNamespaced {
+		issuerName.Namespace = certificateRequest.Namespace
+	}
 
 	// Get the Issuer or ClusterIssuer
 	if err := r.Get(ctx, issuerName, issuer); err != nil {
@@ -208,9 +211,9 @@ func (r *CertificateRequestReconciler) Reconcile(ctx context.Context, req ctrl.R
 		return ctrl.Result{}, errIssuerRef
 	}
 
-	issuerConditionStatus := GetReadyCondition(issuerStatus).Status
-	if issuerConditionStatus != cmmeta.ConditionTrue {
-		return ctrl.Result{}, fmt.Errorf("%w: status is %v", errIssuerNotReady, issuerConditionStatus)
+	issuerCondition := GetReadyCondition(issuerStatus)
+	if issuerCondition == nil || issuerCondition.Status != cmmeta.ConditionTrue {
+		return ctrl.Result{}, fmt.Errorf("%w: status is %v", errIssuerNotReady, issuerCondition)
 	}
 
 	signer, err := r.SignerBuilder(ctx, issuerSpec, issuerStatus)
