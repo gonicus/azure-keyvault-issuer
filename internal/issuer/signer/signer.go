@@ -116,6 +116,7 @@ func (o *azureKeyvaultSigner) SignCSR(ctx context.Context, csrBytes []byte) ([]b
 		EmailAddresses:     csr.EmailAddresses,
 		IPAddresses:        csr.IPAddresses,
 		URIs:               csr.URIs,
+		SerialNumber:       big.NewInt(1),
 	}
 
 	return x509.CreateCertificate(rand.Reader, &templateCertificate, parentCert, csr.PublicKey, o)
