@@ -91,13 +91,13 @@ func (o *azureKeyvaultSigner) SignCSR(ctx context.Context, csrBytes []byte) ([]b
 	csrPemBlock, _ := pem.Decode(csrBytes)
 	csr, err := x509.ParseCertificateRequest(csrPemBlock.Bytes)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("unable to decode CSR: %w", err)
 	}
 
 	parentPemBlock, _ := pem.Decode(o.parentCert)
 	parentCert, err := x509.ParseCertificate(parentPemBlock.Bytes)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("unable to decode parent certficate: %w", err)
 	}
 
 	if csr.PublicKeyAlgorithm != x509.RSA {
@@ -119,5 +119,12 @@ func (o *azureKeyvaultSigner) SignCSR(ctx context.Context, csrBytes []byte) ([]b
 		SerialNumber:       big.NewInt(1),
 	}
 
-	return x509.CreateCertificate(rand.Reader, &templateCertificate, parentCert, csr.PublicKey, o)
+	result, err := x509.CreateCertificate(rand.Reader, &templateCertificate, parentCert, csr.PublicKey, o)
+	if err != nil {
+		return nil, fmt.Errorf("unable to create certificate: %w", err)
+	}
+	return pem.EncodeToMemory(&pem.Block{
+		Type:  "CERTIFICATE",
+		Bytes: result,
+	}), nil
 }
