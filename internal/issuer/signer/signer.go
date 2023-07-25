@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"io"
 	"math/big"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/Azure/azure-sdk-for-go/sdk/security/keyvault/azkeys"
@@ -26,7 +27,7 @@ type HealthChecker interface {
 type HealthCheckerBuilder func(*azurekeyvaultissuerv1alpha1.IssuerSpec, *azurekeyvaultissuerv1alpha1.IssuerStatus) (HealthChecker, error)
 
 type Signer interface {
-	SignCSR(context.Context, []byte, []cmapi.KeyUsage) ([]byte, error)
+	SignCSR(context.Context, []byte, []cmapi.KeyUsage, time.Duration) ([]byte, error)
 }
 
 type SignerBuilder func(context.Context, *azurekeyvaultissuerv1alpha1.IssuerSpec, *azurekeyvaultissuerv1alpha1.IssuerStatus) (Signer, error)
@@ -89,7 +90,7 @@ func (o *azureKeyvaultSigner) Sign(rand io.Reader, digest []byte, opts crypto.Si
 	return resp.KeyOperationResult.Result, err
 }
 
-func (o *azureKeyvaultSigner) SignCSR(ctx context.Context, csrBytes []byte, usages []cmapi.KeyUsage) ([]byte, error) {
+func (o *azureKeyvaultSigner) SignCSR(ctx context.Context, csrBytes []byte, usages []cmapi.KeyUsage, duration time.Duration) ([]byte, error) {
 	csrPemBlock, _ := pem.Decode(csrBytes)
 	csr, err := x509.ParseCertificateRequest(csrPemBlock.Bytes)
 	if err != nil {
@@ -111,6 +112,8 @@ func (o *azureKeyvaultSigner) SignCSR(ctx context.Context, csrBytes []byte, usag
 		return nil, fmt.Errorf("unable to extract key usages: %w", err)
 	}
 
+	now := time.Now()
+
 	templateCertificate := x509.Certificate{
 		SignatureAlgorithm: x509.SHA512WithRSA,
 		PublicKeyAlgorithm: csr.PublicKeyAlgorithm,
@@ -125,6 +128,8 @@ func (o *azureKeyvaultSigner) SignCSR(ctx context.Context, csrBytes []byte, usag
 		URIs:               csr.URIs,
 		KeyUsage:           x509KeyUsage,
 		ExtKeyUsage:        x509ExtKeyUsages,
+		NotBefore:          now.Add(-time.Minute),
+		NotAfter:           now.Add(duration),
 		SerialNumber:       big.NewInt(1),
 	}
 
