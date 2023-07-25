@@ -234,6 +234,8 @@ func (r *CertificateRequestReconciler) Reconcile(ctx context.Context, req ctrl.R
 	}
 	certificateRequest.Status.Certificate = signed
 
+	certificateRequest.Status.CA = issuerStatus.CACertificate
+
 	report(cmapi.CertificateRequestReasonIssued, "Signed", nil)
 	return ctrl.Result{}, nil
 }
