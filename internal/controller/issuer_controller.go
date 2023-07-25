@@ -48,6 +48,8 @@ type IssuerReconciler struct {
 
 //+kubebuilder:rbac:groups=azure-keyvault-issuer.gonicus.de,resources=issuers,verbs=get;list;watch
 //+kubebuilder:rbac:groups=azure-keyvault-issuer.gonicus.de,resources=issuers/status,verbs=get;update;patch
+//+kubebuilder:rbac:groups=azure-keyvault-issuer.gonicus.de,resources=clusterissuers,verbs=get;list;watch
+//+kubebuilder:rbac:groups=azure-keyvault-issuer.gonicus.de,resources=clusterissuers/status,verbs=get;update;patch
 
 func (r *IssuerReconciler) newIssuer() (client.Object, error) {
 	issuerGVK := azurekeyvaultissuerv1alpha1.GroupVersion.WithKind(r.Kind)

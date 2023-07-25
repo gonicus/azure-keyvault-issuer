@@ -222,7 +222,7 @@ func (r *CertificateRequestReconciler) Reconcile(ctx context.Context, req ctrl.R
 		return ctrl.Result{}, fmt.Errorf("%w: %v", errSignerBuilder, err)
 	}
 
-	signed, err := signer.SignCSR(ctx, certificateRequest.Spec.Request)
+	signed, err := signer.SignCSR(ctx, certificateRequest.Spec.Request, certificateRequest.Spec.Usages)
 	if err != nil {
 		return ctrl.Result{}, fmt.Errorf("%w: %v", errSignerSign, err)
 	}

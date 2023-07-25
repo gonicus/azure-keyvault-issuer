@@ -19,10 +19,10 @@ package util
 import (
 	"fmt"
 
+	cmapi "github.com/cert-manager/cert-manager/pkg/apis/certmanager/v1"
+	cmmeta "github.com/cert-manager/cert-manager/pkg/apis/meta/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	cmmeta "github.com/cert-manager/cert-manager/pkg/apis/meta/v1"
-	cmapi "github.com/cert-manager/cert-manager/pkg/apis/certmanager/v1"
 
 	azurekeyvaultissuerv1alpha1 "github.com/joshmue/azure-keyvault-issuer/api/v1alpha1"
 )

@@ -14,6 +14,8 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/Azure/azure-sdk-for-go/sdk/security/keyvault/azkeys"
+	cmapi "github.com/cert-manager/cert-manager/pkg/apis/certmanager/v1"
+	pkiutil "github.com/cert-manager/cert-manager/pkg/util/pki"
 	azurekeyvaultissuerv1alpha1 "github.com/joshmue/azure-keyvault-issuer/api/v1alpha1"
 )
 
@@ -24,7 +26,7 @@ type HealthChecker interface {
 type HealthCheckerBuilder func(*azurekeyvaultissuerv1alpha1.IssuerSpec, *azurekeyvaultissuerv1alpha1.IssuerStatus) (HealthChecker, error)
 
 type Signer interface {
-	SignCSR(context.Context, []byte) ([]byte, error)
+	SignCSR(context.Context, []byte, []cmapi.KeyUsage) ([]byte, error)
 }
 
 type SignerBuilder func(context.Context, *azurekeyvaultissuerv1alpha1.IssuerSpec, *azurekeyvaultissuerv1alpha1.IssuerStatus) (Signer, error)
@@ -87,7 +89,7 @@ func (o *azureKeyvaultSigner) Sign(rand io.Reader, digest []byte, opts crypto.Si
 	return resp.KeyOperationResult.Result, err
 }
 
-func (o *azureKeyvaultSigner) SignCSR(ctx context.Context, csrBytes []byte) ([]byte, error) {
+func (o *azureKeyvaultSigner) SignCSR(ctx context.Context, csrBytes []byte, usages []cmapi.KeyUsage) ([]byte, error) {
 	csrPemBlock, _ := pem.Decode(csrBytes)
 	csr, err := x509.ParseCertificateRequest(csrPemBlock.Bytes)
 	if err != nil {
@@ -104,6 +106,11 @@ func (o *azureKeyvaultSigner) SignCSR(ctx context.Context, csrBytes []byte) ([]b
 		return nil, fmt.Errorf("unsupported public key algorithm %v", csr.PublicKeyAlgorithm)
 	}
 
+	x509KeyUsage, x509ExtKeyUsages, err := pkiutil.KeyUsagesForCertificateOrCertificateRequest(usages, false)
+	if err != nil {
+		return nil, fmt.Errorf("unable to extract key usages: %w", err)
+	}
+
 	templateCertificate := x509.Certificate{
 		SignatureAlgorithm: x509.SHA512WithRSA,
 		PublicKeyAlgorithm: csr.PublicKeyAlgorithm,
@@ -116,6 +123,8 @@ func (o *azureKeyvaultSigner) SignCSR(ctx context.Context, csrBytes []byte) ([]b
 		EmailAddresses:     csr.EmailAddresses,
 		IPAddresses:        csr.IPAddresses,
 		URIs:               csr.URIs,
+		KeyUsage:           x509KeyUsage,
+		ExtKeyUsage:        x509ExtKeyUsages,
 		SerialNumber:       big.NewInt(1),
 	}
 
