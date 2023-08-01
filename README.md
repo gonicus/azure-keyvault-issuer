@@ -26,8 +26,8 @@ hack/create_ca_cert->>hack/create_ca_cert: Setup CA certificate template
 hack/create_ca_cert->>AzureKeyVaultKey: Build CA certificate using sign operation
 hack/create_ca_cert->>AzureKeyVaultSecret: Store CA certificate
 loop Issuer reconcile interval
-    azure-keyvault-issuer->>AzureKeyVaultSecret: Fetch CA certificate
     azure-keyvault-issuer->>IssuerCR: Get
+    azure-keyvault-issuer->>AzureKeyVaultSecret: Fetch CA certificate
     azure-keyvault-issuer->>IssuerCR: Set Ready condition and CA certificate in status
 end
 loop CertificateRequest reconcile interval
