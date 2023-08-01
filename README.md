@@ -83,3 +83,11 @@ end
 ## Azure Authentication
 
 Authentication works usually by configuring a [workload identity](https://azure.github.io/azure-workload-identity/docs/) for the controller pod.
+
+## Attribution
+
+This issuer was built using the instructions in the [cert-manager `sample-external-issuer`](https://github.com/cert-manager/sample-external-issuer) repo and contains much code from there.
+
+## Security
+
+For security vulnerabilities, please contact TBD.
