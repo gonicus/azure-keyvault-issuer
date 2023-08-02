@@ -63,6 +63,7 @@ hack/create_ca_cert->>hack/create_ca_cert: Setup CA certificate template
 hack/create_ca_cert->>AzureKeyVaultKey: Build CA certificate using sign operation
 hack/create_ca_cert->>User: Return CA certificate
 User->>AzureKeyVaultSecret: Store CA certificate
+User->>IssuerCR: Create (keyvault, keyName, keyVersion)
 loop Issuer reconcile interval
     azure-keyvault-issuer->>IssuerCR: Get
     azure-keyvault-issuer->>AzureKeyVaultSecret: Get CA certificate
@@ -83,6 +84,13 @@ end
 ## Azure Authentication
 
 Authentication works usually by configuring a [workload identity](https://azure.github.io/azure-workload-identity/docs/) for the controller pod.
+
+## Tradeoffs / Design decisions
+
+`azure-keyvault-issuer` does not implement creation of Azure Keyvault Keys and also does not implement creation of a CA certificate.
+Instead, users have to (1) create the "Key" manually, (2) can utilize `hack/create_ca_cert` to create a CA certificate using that "Key" and (3) should upload this certificate as Azure Keyvault Secret, so `azure-keyvault-issuer` can download it from there.
+
+This is intended to make multi-cluster setups easy. If the CA certificate was managed (and not just consumed) in an `Issuer` resource inside of Kubernetes, distributing it would be more complicated in some/most cases.
 
 ## Attribution
 
