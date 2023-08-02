@@ -6,7 +6,6 @@ import (
 	"crypto/rsa"
 	"crypto/x509"
 	"encoding/pem"
-	"errors"
 	"fmt"
 	"io"
 	"math/big"
@@ -48,7 +47,7 @@ func AzureKeyvaultSignerFromIssuerAndSecretData(ctx context.Context, issuerSpec 
 		return nil, fmt.Errorf("unable to get public key: %w", err)
 	}
 	if *resp.Key.Kty != azkeys.KeyTypeRSA {
-		return nil, errors.New("unsupported key type kty")
+		return nil, fmt.Errorf("unsupported key type kty %v", *resp.Key.Kty)
 	}
 
 	parentPemBlock, _ := pem.Decode(issuerStatus.CACertificate)
