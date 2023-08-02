@@ -50,8 +50,8 @@ func AzureKeyvaultSignerFromIssuerAndSecretData(ctx context.Context, issuerSpec 
 		return nil, fmt.Errorf("unsupported key type kty %v", *resp.Key.Kty)
 	}
 
-	parentPemBlock, _ := pem.Decode(issuerStatus.CACertificate)
-	parentCert, err := x509.ParseCertificate(parentPemBlock.Bytes)
+	caCertificatePemBlock, _ := pem.Decode(issuerStatus.CACertificate)
+	caCertificate, err := x509.ParseCertificate(caCertificatePemBlock.Bytes)
 	if err != nil {
 		return nil, fmt.Errorf("unable to decode parent certficate: %w", err)
 	}
@@ -62,18 +62,18 @@ func AzureKeyvaultSignerFromIssuerAndSecretData(ctx context.Context, issuerSpec 
 			N: big.NewInt(0).SetBytes(resp.Key.N),
 			E: int(big.NewInt(0).SetBytes(resp.Key.E).Int64()),
 		},
-		keyName:    issuerSpec.KeyName,
-		keyVersion: issuerSpec.KeyVersion,
-		parentCert: parentCert,
+		keyName:       issuerSpec.KeyName,
+		keyVersion:    issuerSpec.KeyVersion,
+		caCertificate: caCertificate,
 	}, nil
 }
 
 type azureKeyvaultSigner struct {
-	client     *azkeys.Client
-	publicKey  *rsa.PublicKey
-	keyName    string
-	keyVersion string
-	parentCert *x509.Certificate
+	client        *azkeys.Client
+	publicKey     *rsa.PublicKey
+	keyName       string
+	keyVersion    string
+	caCertificate *x509.Certificate
 }
 
 func (o *azureKeyvaultSigner) Check() error {
@@ -104,6 +104,6 @@ func (o *azureKeyvaultSigner) CreateSignedCertificateFrom(certificateRequest *cm
 		return nil, fmt.Errorf("unsupported public key algorithm %v", templateCertificate.PublicKeyAlgorithm)
 	}
 
-	pemBytes, _, err := pkiutil.SignCertificate(templateCertificate, o.parentCert, templateCertificate.PublicKey, o)
+	pemBytes, _, err := pkiutil.SignCertificate(templateCertificate, o.caCertificate, templateCertificate.PublicKey, o)
 	return pemBytes, err
 }
