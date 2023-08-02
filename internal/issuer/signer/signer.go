@@ -37,18 +37,24 @@ func AzureKeyvaultHealthCheckerFromIssuerAndSecretData(context.Context, *azureke
 func AzureKeyvaultSignerFromIssuerAndSecretData(ctx context.Context, issuerSpec *azurekeyvaultissuerv1alpha1.IssuerSpec, issuerStatus *azurekeyvaultissuerv1alpha1.IssuerStatus) (Signer, error) {
 	creds, err := azidentity.NewDefaultAzureCredential(nil)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("unable to initialize azure auth: %w", err)
 	}
 	client, err := azkeys.NewClient(issuerSpec.KeyVaultBaseURL, creds, nil)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("unable to create azkeys client: %w", err)
 	}
 	resp, err := client.GetKey(ctx, issuerSpec.KeyName, issuerSpec.KeyVersion, nil)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("unable to get public key: %w", err)
 	}
 	if *resp.Key.Kty != azkeys.KeyTypeRSA {
 		return nil, errors.New("unsupported key type kty")
+	}
+
+	parentPemBlock, _ := pem.Decode(issuerStatus.CACertificate)
+	parentCert, err := x509.ParseCertificate(parentPemBlock.Bytes)
+	if err != nil {
+		return nil, fmt.Errorf("unable to decode parent certficate: %w", err)
 	}
 
 	return &azureKeyvaultSigner{
@@ -59,7 +65,7 @@ func AzureKeyvaultSignerFromIssuerAndSecretData(ctx context.Context, issuerSpec 
 		},
 		keyName:    issuerSpec.KeyName,
 		keyVersion: issuerSpec.KeyVersion,
-		parentCert: issuerStatus.CACertificate,
+		parentCert: parentCert,
 	}, nil
 }
 
@@ -68,7 +74,7 @@ type azureKeyvaultSigner struct {
 	publicKey  *rsa.PublicKey
 	keyName    string
 	keyVersion string
-	parentCert []byte
+	parentCert *x509.Certificate
 }
 
 func (o *azureKeyvaultSigner) Check() error {
@@ -94,16 +100,11 @@ func (o *azureKeyvaultSigner) CreateSignedCertificateFrom(certificateRequest *cm
 		return nil, fmt.Errorf("unable to generate template for certficate: %w", err)
 	}
 
-	parentPemBlock, _ := pem.Decode(o.parentCert)
-	parentCert, err := x509.ParseCertificate(parentPemBlock.Bytes)
-	if err != nil {
-		return nil, fmt.Errorf("unable to decode parent certficate: %w", err)
-	}
-
+	// Is this really necessary?
 	if templateCertificate.PublicKeyAlgorithm != x509.RSA {
 		return nil, fmt.Errorf("unsupported public key algorithm %v", templateCertificate.PublicKeyAlgorithm)
 	}
 
-	pemBytes, _, err := pkiutil.SignCertificate(templateCertificate, parentCert, templateCertificate.PublicKey, o)
+	pemBytes, _, err := pkiutil.SignCertificate(templateCertificate, o.parentCert, templateCertificate.PublicKey, o)
 	return pemBytes, err
 }
