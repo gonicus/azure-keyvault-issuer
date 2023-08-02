@@ -53,7 +53,7 @@ func AzureKeyvaultSignerFromIssuerAndSecretData(ctx context.Context, issuerSpec 
 	caCertificatePemBlock, _ := pem.Decode(issuerStatus.CACertificate)
 	caCertificate, err := x509.ParseCertificate(caCertificatePemBlock.Bytes)
 	if err != nil {
-		return nil, fmt.Errorf("unable to decode parent certficate: %w", err)
+		return nil, fmt.Errorf("unable to decode ca certficate: %w", err)
 	}
 
 	return &azureKeyvaultSigner{
