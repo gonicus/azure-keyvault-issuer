@@ -3,7 +3,6 @@ package signer
 import (
 	"context"
 	"crypto"
-	"crypto/rand"
 	"crypto/rsa"
 	"crypto/x509"
 	"encoding/pem"
@@ -11,7 +10,6 @@ import (
 	"fmt"
 	"io"
 	"math/big"
-	"time"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/Azure/azure-sdk-for-go/sdk/security/keyvault/azkeys"
@@ -27,7 +25,7 @@ type HealthChecker interface {
 type HealthCheckerBuilder func(*azurekeyvaultissuerv1alpha1.IssuerSpec, *azurekeyvaultissuerv1alpha1.IssuerStatus) (HealthChecker, error)
 
 type Signer interface {
-	SignCSR(context.Context, []byte, []cmapi.KeyUsage, time.Duration) ([]byte, error)
+	CreateSignedCertificateFrom(*cmapi.CertificateRequest) ([]byte, error)
 }
 
 type SignerBuilder func(context.Context, *azurekeyvaultissuerv1alpha1.IssuerSpec, *azurekeyvaultissuerv1alpha1.IssuerStatus) (Signer, error)
@@ -90,11 +88,10 @@ func (o *azureKeyvaultSigner) Sign(rand io.Reader, digest []byte, opts crypto.Si
 	return resp.KeyOperationResult.Result, err
 }
 
-func (o *azureKeyvaultSigner) SignCSR(ctx context.Context, csrBytes []byte, usages []cmapi.KeyUsage, duration time.Duration) ([]byte, error) {
-	csrPemBlock, _ := pem.Decode(csrBytes)
-	csr, err := x509.ParseCertificateRequest(csrPemBlock.Bytes)
+func (o *azureKeyvaultSigner) CreateSignedCertificateFrom(certificateRequest *cmapi.CertificateRequest) ([]byte, error) {
+	templateCertificate, err := pkiutil.GenerateTemplateFromCertificateRequest(certificateRequest)
 	if err != nil {
-		return nil, fmt.Errorf("unable to decode CSR: %w", err)
+		return nil, fmt.Errorf("unable to generate template for certficate: %w", err)
 	}
 
 	parentPemBlock, _ := pem.Decode(o.parentCert)
@@ -103,42 +100,10 @@ func (o *azureKeyvaultSigner) SignCSR(ctx context.Context, csrBytes []byte, usag
 		return nil, fmt.Errorf("unable to decode parent certficate: %w", err)
 	}
 
-	if csr.PublicKeyAlgorithm != x509.RSA {
-		return nil, fmt.Errorf("unsupported public key algorithm %v", csr.PublicKeyAlgorithm)
+	if templateCertificate.PublicKeyAlgorithm != x509.RSA {
+		return nil, fmt.Errorf("unsupported public key algorithm %v", templateCertificate.PublicKeyAlgorithm)
 	}
 
-	x509KeyUsage, x509ExtKeyUsages, err := pkiutil.KeyUsagesForCertificateOrCertificateRequest(usages, false)
-	if err != nil {
-		return nil, fmt.Errorf("unable to extract key usages: %w", err)
-	}
-
-	now := time.Now()
-
-	templateCertificate := x509.Certificate{
-		SignatureAlgorithm: x509.SHA512WithRSA,
-		PublicKeyAlgorithm: csr.PublicKeyAlgorithm,
-		PublicKey:          csr.PublicKey,
-		Version:            csr.Version,
-		Subject:            csr.Subject,
-		Extensions:         csr.Extensions,
-		ExtraExtensions:    csr.ExtraExtensions,
-		DNSNames:           csr.DNSNames,
-		EmailAddresses:     csr.EmailAddresses,
-		IPAddresses:        csr.IPAddresses,
-		URIs:               csr.URIs,
-		KeyUsage:           x509KeyUsage,
-		ExtKeyUsage:        x509ExtKeyUsages,
-		NotBefore:          now.Add(-time.Minute),
-		NotAfter:           now.Add(duration),
-		SerialNumber:       big.NewInt(1),
-	}
-
-	result, err := x509.CreateCertificate(rand.Reader, &templateCertificate, parentCert, csr.PublicKey, o)
-	if err != nil {
-		return nil, fmt.Errorf("unable to create certificate: %w", err)
-	}
-	return pem.EncodeToMemory(&pem.Block{
-		Type:  "CERTIFICATE",
-		Bytes: result,
-	}), nil
+	pemBytes, _, err := pkiutil.SignCertificate(templateCertificate, parentCert, templateCertificate.PublicKey, o)
+	return pemBytes, err
 }

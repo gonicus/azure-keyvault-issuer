@@ -20,7 +20,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"time"
 
 	cmutil "github.com/cert-manager/cert-manager/pkg/api/util"
 	cmmeta "github.com/cert-manager/cert-manager/pkg/apis/meta/v1"
@@ -223,12 +222,7 @@ func (r *CertificateRequestReconciler) Reconcile(ctx context.Context, req ctrl.R
 		return ctrl.Result{}, fmt.Errorf("%w: %v", errSignerBuilder, err)
 	}
 
-	duration := time.Hour
-	if certificateRequest.Spec.Duration != nil {
-		duration = certificateRequest.Spec.Duration.Duration
-	}
-
-	signed, err := signer.SignCSR(ctx, certificateRequest.Spec.Request, certificateRequest.Spec.Usages, duration)
+	signed, err := signer.CreateSignedCertificateFrom(&certificateRequest)
 	if err != nil {
 		return ctrl.Result{}, fmt.Errorf("%w: %v", errSignerSign, err)
 	}
