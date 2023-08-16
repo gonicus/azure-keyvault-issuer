@@ -1,6 +1,12 @@
 # azure-keyvault-issuer
 
-`azure-keyvault-issuer` is an [external issuer](https://cert-manager.io/docs/configuration/external/) for cert-manager, using an Azure Keyvault "Key" to sign `CertificateRequests`.
+`azure-keyvault-issuer` is an
+[external issuer](https://cert-manager.io/docs/configuration/external/) for
+[cert-manager](https://cert-manager.io), using an
+[Azure Keyvault "Key"](https://learn.microsoft.com/en-us/azure/key-vault/keys/about-keys)
+to sign `CertificateRequests`.
+
+`azure-keyvault-issuer` is not affiliated with Microsoft.
 
 ## Getting started
 
