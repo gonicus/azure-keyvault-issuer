@@ -8,6 +8,23 @@ to sign `CertificateRequests`.
 
 `azure-keyvault-issuer` is not affiliated with Microsoft.
 
+## Architectural high level overview
+
+```mermaid
+flowchart TB
+  cr[CertificateRequest CR]
+  i[Issuer CR]
+  key[Azure KeyVault Key]
+  aki[azure-keyvault-issuer]
+  aki -- "(1) get" --> cr
+  aki -- "(2) get keyvault details" --> i
+  aki -- "(3) create certificate using" --> key
+  aki -- "(4) set certificate" --> cr
+  style cr fill:#555
+  style i fill:#555
+  style key fill:#338
+```
+
 ## Tradeoffs / Design decisions
 
 ### Management of CA and CA certificate
