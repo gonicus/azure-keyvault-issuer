@@ -10,10 +10,16 @@ to sign `CertificateRequests`.
 
 ## Tradeoffs / Design decisions
 
+### Management of CA and CA certificate
+
 `azure-keyvault-issuer` does not implement creation of Azure Keyvault Keys and also does not implement creation of a CA certificate.
 Instead, users have to (1) create the "Key" manually, (2) can utilize `hack/create_ca_cert` to create a CA certificate using that "Key" and (3) should upload this certificate as Azure Keyvault Secret, so `azure-keyvault-issuer` can download it from there.
 
 This is intended to make multi-cluster setups easy. If the CA certificate was managed (and not just consumed) in an `Issuer` resource inside of Kubernetes, distributing it would be more complicated in some/most cases.
+
+### Azure Authentication
+
+Authentication works usually by configuring a [workload identity](https://azure.github.io/azure-workload-identity/docs/) for the controller pod.
 
 ## Attribution
 
@@ -97,10 +103,6 @@ end
         name: test-clusterissuer
       request: ...
     ```
-
-## Azure Authentication
-
-Authentication works usually by configuring a [workload identity](https://azure.github.io/azure-workload-identity/docs/) for the controller pod.
 
 ## Security
 
