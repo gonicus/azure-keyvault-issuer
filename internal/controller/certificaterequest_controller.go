@@ -33,9 +33,9 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
 	cmapi "github.com/cert-manager/cert-manager/pkg/apis/certmanager/v1"
-	azurekeyvaultissuerv1alpha1 "github.com/joshmue/azure-keyvault-issuer/api/v1alpha1"
-	"github.com/joshmue/azure-keyvault-issuer/internal/issuer/signer"
-	issuerutil "github.com/joshmue/azure-keyvault-issuer/internal/issuer/util"
+	azurekeyvaultissuerv1alpha1 "github.com/gonicus/azure-keyvault-issuer/api/v1alpha1"
+	"github.com/gonicus/azure-keyvault-issuer/internal/issuer/signer"
+	issuerutil "github.com/gonicus/azure-keyvault-issuer/internal/issuer/util"
 )
 
 var (

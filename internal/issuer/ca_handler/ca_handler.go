@@ -6,7 +6,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/Azure/azure-sdk-for-go/sdk/security/keyvault/azsecrets"
-	azurekeyvaultissuerv1alpha1 "github.com/joshmue/azure-keyvault-issuer/api/v1alpha1"
+	azurekeyvaultissuerv1alpha1 "github.com/gonicus/azure-keyvault-issuer/api/v1alpha1"
 )
 
 type HealthChecker interface {

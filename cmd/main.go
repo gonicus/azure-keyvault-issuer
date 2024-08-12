@@ -33,10 +33,10 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
 	cmapi "github.com/cert-manager/cert-manager/pkg/apis/certmanager/v1"
-	azurekeyvaultissuerv1alpha1 "github.com/joshmue/azure-keyvault-issuer/api/v1alpha1"
-	"github.com/joshmue/azure-keyvault-issuer/internal/controller"
-	cahandler "github.com/joshmue/azure-keyvault-issuer/internal/issuer/ca_handler"
-	"github.com/joshmue/azure-keyvault-issuer/internal/issuer/signer"
+	azurekeyvaultissuerv1alpha1 "github.com/gonicus/azure-keyvault-issuer/api/v1alpha1"
+	"github.com/gonicus/azure-keyvault-issuer/internal/controller"
+	cahandler "github.com/gonicus/azure-keyvault-issuer/internal/issuer/ca_handler"
+	"github.com/gonicus/azure-keyvault-issuer/internal/issuer/signer"
 	//+kubebuilder:scaffold:imports
 )
 

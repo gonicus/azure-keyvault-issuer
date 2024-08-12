@@ -28,9 +28,9 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	azurekeyvaultissuerv1alpha1 "github.com/joshmue/azure-keyvault-issuer/api/v1alpha1"
-	cahandler "github.com/joshmue/azure-keyvault-issuer/internal/issuer/ca_handler"
-	issuerutil "github.com/joshmue/azure-keyvault-issuer/internal/issuer/util"
+	azurekeyvaultissuerv1alpha1 "github.com/gonicus/azure-keyvault-issuer/api/v1alpha1"
+	cahandler "github.com/gonicus/azure-keyvault-issuer/internal/issuer/ca_handler"
+	issuerutil "github.com/gonicus/azure-keyvault-issuer/internal/issuer/util"
 )
 
 var (

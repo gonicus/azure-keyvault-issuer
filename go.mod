@@ -1,4 +1,4 @@
-module github.com/joshmue/azure-keyvault-issuer
+module github.com/gonicus/azure-keyvault-issuer
 
 go 1.20
 

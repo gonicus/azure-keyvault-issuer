@@ -14,7 +14,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/sdk/security/keyvault/azkeys"
 	cmapi "github.com/cert-manager/cert-manager/pkg/apis/certmanager/v1"
 	pkiutil "github.com/cert-manager/cert-manager/pkg/util/pki"
-	azurekeyvaultissuerv1alpha1 "github.com/joshmue/azure-keyvault-issuer/api/v1alpha1"
+	azurekeyvaultissuerv1alpha1 "github.com/gonicus/azure-keyvault-issuer/api/v1alpha1"
 )
 
 type HealthChecker interface {
