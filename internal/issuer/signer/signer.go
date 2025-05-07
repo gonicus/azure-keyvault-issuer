@@ -103,6 +103,7 @@ func (o *azureKeyvaultSigner) CreateSignedCertificateFrom(certificateRequest *cm
 	if templateCertificate.PublicKeyAlgorithm != x509.RSA {
 		return nil, fmt.Errorf("unsupported public key algorithm %v", templateCertificate.PublicKeyAlgorithm)
 	}
+	templateCertificate.SignatureAlgorithm = x509.SHA512WithRSA
 
 	pemBytes, _, err := pkiutil.SignCertificate(templateCertificate, o.caCertificate, templateCertificate.PublicKey, o)
 	return pemBytes, err
