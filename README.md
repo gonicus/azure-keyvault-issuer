@@ -6,7 +6,11 @@
 [Azure Keyvault "Key"](https://learn.microsoft.com/en-us/azure/key-vault/keys/about-keys)
 to sign `CertificateRequests`.
 
+This allows setting up internal PKI's using cert-manager without having access to CA key material, hence minimizing risk of leakage.
+
 `azure-keyvault-issuer` is not affiliated with Microsoft.
+
+`azure-keyvault-issuer` is currently not actively maintained.
 
 ## Architectural high level overview
 
@@ -38,27 +42,70 @@ This is intended to make multi-cluster setups easy. If the CA certificate was ma
 
 Authentication works usually by configuring a [workload identity](https://azure.github.io/azure-workload-identity/docs/) for the controller pod.
 
+### Algorithms
+
+Only support for RS512 signing is implemented.
+
 ## Getting started
 
-1. Create Azure KeyVault
+The following instructions apply to **AKS clusters with workload identity enabled**. Learn more about Workload identities in the [Azure Docs](https://learn.microsoft.com/en-us/azure/aks/workload-identity-deploy-cluster). Other clusters may need to use different authentication mechanisms.
+
+1. Create Azure KeyVault, assign `Key Vault Administrator` role to yourself
 2. Create "Key" inside of Azure Keyvault (only RSA supported for now)
-3. Run `hack/create_ca_cert`, push resulting CA certificate into Azure Keyvault "Secret" (with the same name as the name of the "Key")
-4. Create user assigned identity for `azure-keyvault-issuer` controller, granting Key/Get, Key/Sign and Secret/Get permissions on the Keyvault
-5. Install azure-keyvault-issuer using the kustomize base in `config/default`, configuring workload identity with user assigned identity mentioned above
-6. Create Issuer/ClusterIssuer
+3. Run `go run ./hack/create_ca_cert` (consult `--help` for parameter names, make sure to be logged in with Azure CLI) and push resulting CA certificate into Azure Keyvault "Secret" with the same name as the name of the "Key" (e. g. using `az keyvault secret set ...`)
+    ```
+    go run ./hack/create_ca_cert --vault.base-url=https://<vaultname>.vault.azure.net/ --vault.key.name=<keyname> --vault.key.version=<keyversion> > ca.crt
+    az keyvault secret set --vault-name <vaultname> --name <keyname> --file ca.crt
+    ```
+4. Create user assigned identity for `azure-keyvault-issuer` controller, granting Key/Get, Key/Sign and Secret/Get permissions on the Keyvault (e. g. using `Key Vault Crypto User` and `Key Vault Secrets User` role assignments)
+5. Add to the metadata of the service account in `./config/rbac/service_account.yaml`:
+    ```yaml
+      annotations:
+        azure.workload.identity/client-id: '<client id of your user assigned identity>'
+    ```
+6. Add `azure.workload.identity/use: "true"` to Pod template metadata labels in `./config/manager/manager.yaml`:
+    ```yaml
+    ...
+    apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      name: controller-manager
+      namespace: system
+      ...
+    spec:
+      selector:
+        matchLabels:
+          control-plane: controller-manager
+      replicas: 1
+      template:
+        metadata:
+          annotations:
+            kubectl.kubernetes.io/default-container: manager
+          labels:
+            azure.workload.identity/use: "true"
+            control-plane: controller-manager
+    ...
+    ```
+6. Set up federated identity credential for the service account (`system:serviceaccount:azure-keyvault-issuer-system:azure-keyvault-issuer-controller-manager`) at the user assigned identity
+6. Install cert-manager
+3. Do
+    ```
+    kubectl apply -k config/default
+    ```
+6. Create Issuer
     ```yaml
     apiVersion: azure-keyvault-issuer.gonicus.de/v1alpha1
-    kind: ClusterIssuer
+    kind: Issuer
     metadata:
-      name: test-clusterissuer
+      name: test-issuer
     spec:
-      keyVaultBaseURL: 'https://my-cert-manager-vault.vault.azure.net/'
-      keyName: test-key
+      keyVaultBaseURL: 'https://<insert key vault name>.vault.azure.net/'
+      keyName: '<insert key name>'
       keyVersion: '<insert key version>'
     ```
-7. Validate health of Issuer/ClusterIssuer
+7. Validate health of Issuer
     ```
-    kubectl get clusterissuer.azure-keyvault-issuer.gonicus.de test-clusterissuer -oyaml
+    kubectl get issuer.azure-keyvault-issuer.gonicus.de test-issuer -oyaml
     ```
 8. Use issuer
     ```yaml
@@ -68,9 +115,9 @@ Authentication works usually by configuring a [workload identity](https://azure.
       name: test-csr
     spec:
       issuerRef:
-        kind: ClusterIssuer
+        kind: Issuer
         group: azure-keyvault-issuer.gonicus.de
-        name: test-clusterissuer
+        name: test-issuer
       request: ...
     ```
 
@@ -118,7 +165,3 @@ end
 ## Attribution
 
 This issuer was built using the instructions in the [cert-manager `sample-external-issuer`](https://github.com/cert-manager/sample-external-issuer) repo and contains much code from there.
-
-## Security
-
-For security vulnerabilities, please contact TBD.
