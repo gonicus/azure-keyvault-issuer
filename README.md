@@ -51,19 +51,19 @@ Only support for RS512 signing is implemented.
 The following instructions apply to **AKS clusters with workload identity enabled**. Learn more about Workload identities in the [Azure Docs](https://learn.microsoft.com/en-us/azure/aks/workload-identity-deploy-cluster). Other clusters may need to use different authentication mechanisms.
 
 1. Create Azure KeyVault, assign `Key Vault Administrator` role to yourself
-2. Create "Key" inside of Azure Keyvault (only RSA supported for now)
-3. Run `go run ./hack/create_ca_cert` (consult `--help` for parameter names, make sure to be logged in with Azure CLI) and push resulting CA certificate into Azure Keyvault "Secret" with the same name as the name of the "Key" (e. g. using `az keyvault secret set ...`)
+1. Create "Key" inside of Azure Keyvault (only RSA supported for now)
+1. Run `go run ./hack/create_ca_cert` (consult `--help` for parameter names, make sure to be logged in with Azure CLI) and push resulting CA certificate into Azure Keyvault "Secret" with the same name as the name of the "Key" (e. g. using `az keyvault secret set ...`)
     ```
     go run ./hack/create_ca_cert --vault.base-url=https://<vaultname>.vault.azure.net/ --vault.key.name=<keyname> --vault.key.version=<keyversion> > ca.crt
     az keyvault secret set --vault-name <vaultname> --name <keyname> --file ca.crt
     ```
-4. Create user assigned identity for `azure-keyvault-issuer` controller, granting Key/Get, Key/Sign and Secret/Get permissions on the Keyvault (e. g. using `Key Vault Crypto User` and `Key Vault Secrets User` role assignments)
-5. Add to the metadata of the service account in `./config/rbac/service_account.yaml`:
+1. Create user assigned identity for `azure-keyvault-issuer` controller, granting Key/Get, Key/Sign and Secret/Get permissions on the Keyvault (e. g. using `Key Vault Crypto User` and `Key Vault Secrets User` role assignments)
+1. Add to the metadata of the service account in `./config/rbac/service_account.yaml`:
     ```yaml
       annotations:
         azure.workload.identity/client-id: '<client id of your user assigned identity>'
     ```
-6. Add `azure.workload.identity/use: "true"` to Pod template metadata labels in `./config/manager/manager.yaml`:
+1. Add `azure.workload.identity/use: "true"` to Pod template metadata labels in `./config/manager/manager.yaml`:
     ```yaml
     ...
     apiVersion: apps/v1
@@ -86,13 +86,13 @@ The following instructions apply to **AKS clusters with workload identity enable
             control-plane: controller-manager
     ...
     ```
-6. Set up federated identity credential for the service account (`system:serviceaccount:azure-keyvault-issuer-system:azure-keyvault-issuer-controller-manager`) at the user assigned identity
-6. Install cert-manager
-3. Do
+1. Set up federated identity credential for the service account (`system:serviceaccount:azure-keyvault-issuer-system:azure-keyvault-issuer-controller-manager`) at the user assigned identity
+1. Install cert-manager
+1. Do
     ```
     kubectl apply -k config/default
     ```
-6. Create Issuer
+1. Create Issuer
     ```yaml
     apiVersion: azure-keyvault-issuer.gonicus.de/v1alpha1
     kind: Issuer
@@ -103,11 +103,11 @@ The following instructions apply to **AKS clusters with workload identity enable
       keyName: '<insert key name>'
       keyVersion: '<insert key version>'
     ```
-7. Validate health of Issuer
+1. Validate health of Issuer
     ```
     kubectl get issuer.azure-keyvault-issuer.gonicus.de test-issuer -oyaml
     ```
-8. Use issuer
+1. Use issuer
     ```yaml
     apiVersion: cert-manager.io/v1
     kind: CertificateRequest
